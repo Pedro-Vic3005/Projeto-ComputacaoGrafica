@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cobra 2D</title>
+  <style>
+    body { margin: 20px; font-family: sans-serif; }
+    canvas { border: 1px solid #333; display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>Cobra 2D</h2>
+<canvas id="canvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+// =============================================================
+// ESTADO
+// =============================================================
+let posX = W / 2;
+let posY = H / 2;
+
+let direcao = 'right'; // direção atual
+let velocidade = 3;
+
+// Ângulo da cabeça (orientação)
+let anguloRotacao = 0;
+
+// Ângulo da língua (animação)
+let anguloLingua = 0;
+
+// =============================================================
+// DESENHO DA COBRA
+// =============================================================
+function desenhaCobra(tamanho) {
+  // Cabeça
+  ctx.fillStyle = 'green';
+  ctx.fillRect(-tamanho / 2, -tamanho / 2, tamanho, tamanho);
+  ctx.strokeStyle = '#000';
+  ctx.strokeRect(-tamanho / 2, -tamanho / 2, tamanho, tamanho);
+
+  // Olhos
+  ctx.fillStyle = 'black';
+  ctx.beginPath();
+  ctx.arc(-10, 10, 4, 0, Math.PI * 2);
+  ctx.arc(10, 10, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Língua animada
+  let tamanhoLingua = 20 + 10 * Math.sin(anguloLingua);
+
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.moveTo(0, -tamanho / 2);
+  ctx.lineTo(-8, -tamanho / 2 - tamanhoLingua);
+  ctx.moveTo(0, -tamanho / 2);
+  ctx.lineTo(8, -tamanho / 2 - tamanhoLingua);
+  ctx.stroke();
+}
+
+// =============================================================
+// MOVIMENTO
+// =============================================================
+function atualizarMovimento() {
+  switch (direcao) {
+    case 'right':
+      posX += velocidade;
+      anguloRotacao = Math.PI / 2;
+      break;
+    case 'left':
+      posX -= velocidade;
+      anguloRotacao = -Math.PI / 2;
+      break;
+    case 'up':
+      posY -= velocidade;
+      anguloRotacao = 0;
+      break;
+    case 'down':
+      posY += velocidade;
+      anguloRotacao = Math.PI;
+      break;
+  }
+}
+
+// =============================================================
+// LOOP
+// =============================================================
+function animar() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // Atualiza
+  atualizarMovimento();
+
+  if (posX < 0 || posX > W || posY < 0 || posY > H) {
+  reiniciarJogo();
+ }
+
+  anguloLingua += 0.2;
+
+  // Desenha cobra
+  ctx.save();
+    ctx.translate(posX, posY);
+    ctx.rotate(anguloRotacao);
+    desenhaCobra(60);
+  ctx.restore();
+
+  requestAnimationFrame(animar);
+}
+
+function reiniciarJogo() {
+  posX = W / 2;
+  posY = H / 2;
+  direcao = 'right';
+  anguloRotacao = Math.PI / 2;
+}
+
+// =============================================================
+// CONTROLES
+// =============================================================
+document.addEventListener('keydown', function(e) {
+  switch (e.key) {
+    case 'ArrowUp':
+      if (direcao !== 'down') direcao = 'up';
+      break;
+    case 'ArrowDown':
+      if (direcao !== 'up') direcao = 'down';
+      break;
+    case 'ArrowLeft':
+      if (direcao !== 'right') direcao = 'left';
+      break;
+    case 'ArrowRight':
+      if (direcao !== 'left') direcao = 'right';
+      break;
+  }
+});
+
+// INÍCIO
+animar();
+</script>
+</body>
+</html>
