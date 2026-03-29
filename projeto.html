@@ -59,10 +59,13 @@ function ChangeHighScore(){
 }
 
 // =============================================================
-// MAÇÃS
+// Segmentos
 // =============================================================
 const QUANTIDADE_MACAS = 3;
 let macas = [];
+
+let rastro = [];
+let tamanhoRastro = 1;
 
 // =============================================================
 // CONFIGURAÇÃO DO VIEWPORT (GRID)
@@ -154,6 +157,27 @@ function desenhaCobra(tamanho) {
   ctx.stroke();
 }
 
+function desenharRastro() {
+  rastro.forEach((parte, index) => {
+    const posX = parte.x * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+    const posY = parte.y * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+
+    ctx.save();
+    ctx.translate(posX, posY);
+
+    ctx.fillStyle = 'green';
+
+    ctx.fillRect(
+      -TAMANHO_CELULA / 2,
+      -TAMANHO_CELULA / 2,
+      TAMANHO_CELULA,
+      TAMANHO_CELULA
+    );
+
+    ctx.restore();
+  });
+}
+
 function desenharMacas() {
   macas.forEach(maca => {
     const posX = maca.x * TAMANHO_CELULA + TAMANHO_CELULA / 2;
@@ -213,11 +237,26 @@ function atualizarMovimento(tempoAtual) {
   posX = gridX * TAMANHO_CELULA + TAMANHO_CELULA / 2;
   posY = gridY * TAMANHO_CELULA + TAMANHO_CELULA / 2;
 
+  rastro.unshift({ x: gridX, y: gridY });
+
+  // limita o tamanho do rastro
+  if (rastro.length > tamanhoRastro) {
+    rastro.pop();
+  }
+
+  for (let i = 1; i < rastro.length; i++) {
+    if (rastro[i].x === gridX && rastro[i].y === gridY) {
+      reiniciarJogo();
+      return;
+    }
+  }
+
   macas = macas.filter(maca => {
   if (maca.x === gridX && maca.y === gridY) {
     if (intervaloMovimento >= 70)
       intervaloMovimento -= 5;
       Score += 1;
+      tamanhoRastro += 1;
       ChangeScore();
     return false;
   }
@@ -253,6 +292,13 @@ function animar(tempoAtual) {
 
   atualizarMovimento(tempoAtual);
 
+  desenharRastro();
+  ctx.save();
+  ctx.translate(posX, posY);
+  ctx.rotate(anguloRotacao);
+  desenhaCobra(TAMANHO_CELULA);
+  ctx.restore();
+
   // colisão com borda
   if (
     gridX < 0 ||
@@ -286,6 +332,8 @@ function reiniciarJogo() {
   direcao = 'right';
   anguloRotacao = Math.PI / 2;
   intervaloMovimento = 160;
+  tamanhoRastro = 1;
+  rastro = [];
   if (Score > HighScore){
     HighScore = Score;
     ChangeHighScore();
