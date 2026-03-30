@@ -13,7 +13,7 @@ O jogo funciona diretamente no navegador.
 - Estado em andamento:
 - Estado inicial:
 
-![Tela inicial](assets/jogo2.png)
+![Tela inicial](jogo_print.png)
 
 ---
 
