@@ -4,11 +4,11 @@ Um jogo clássico da cobrinha desenvolvido com **HTML5 + Canvas + JavaScript pur
 
 ---
 
-## 🎮 Demonstração
+## Demonstração
 
 O jogo funciona diretamente no navegador.
 
-### 📷 Exemplos do jogo
+### Exemplos do jogo
 
 - Estado em andamento:
 - Estado inicial:
@@ -17,32 +17,32 @@ O jogo funciona diretamente no navegador.
 
 ---
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
-- ✅ Movimentação da cobra em grid
-- ✅ Sistema de pontuação (Score)
-- ✅ Sistema de recorde (High Score)
-- ✅ Crescimento da cobra ao coletar maçãs 🍎
-- ✅ Aumento de dificuldade progressivo (velocidade)
-- ✅ Colisão com:
+-  Movimentação da cobra em grid
+-  Sistema de pontuação (Score)
+-  Sistema de recorde (High Score)
+-  Crescimento da cobra ao coletar maçãs 
+-  Aumento de dificuldade progressivo (velocidade)
+-  Colisão com:
   - Parede ❌
   - Próprio corpo ❌
-- ✅ Reinício automático ao perder
-- ✅ Animações:
-  - Língua da cobra 🐍
-  - Maçãs pulsando 🍎
+-  Reinício automático ao perder
+-  Animações:
+  - Língua da cobra 
+  - Maçãs pulsando 
 
 ---
 
-## 🧠 Lógica do Jogo
+##  Lógica do Jogo
 
-### 📌 Objetivo
+###  Objetivo
 
 Controlar a cobra para coletar as maçãs espalhadas pelo mapa, acumulando pontos e aumentando seu tamanho sem colidir.
 
 ---
 
-### 📌 Regras principais
+###  Regras principais
 
 - A cobra se move continuamente em uma direção
 - O jogador controla usando as setas do teclado:
@@ -53,7 +53,7 @@ Controlar a cobra para coletar as maçãs espalhadas pelo mapa, acumulando ponto
 
 ---
 
-### 📌 Sistema de crescimento
+###  Sistema de crescimento
 
 - Cada maçã coletada:
   - +1 ponto
@@ -62,7 +62,7 @@ Controlar a cobra para coletar as maçãs espalhadas pelo mapa, acumulando ponto
 
 ---
 
-### 📌 Condições de derrota
+###  Condições de derrota
 
 O jogo reinicia automaticamente quando:
 
@@ -71,7 +71,7 @@ O jogo reinicia automaticamente quando:
 
 ---
 
-### 📌 Sistema de pontuação
+###  Sistema de pontuação
 
 - Score atual é exibido durante o jogo
 - High Score é salvo durante a sessão
@@ -89,7 +89,7 @@ O jogo reinicia automaticamente quando:
 
 ## 🧩 Arquitetura do Código
 
-### 🎯 Principais componentes
+###  Principais componentes
 
 #### 🔹 Renderização
 - `desenharGrid()`
