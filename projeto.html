@@ -6,11 +6,37 @@
   <style>
     body { margin: 20px; font-family: sans-serif; }
     canvas { border: 1px solid #333; display: block; margin-top: 10px; }
+
+    #hud {
+    display: flex;
+    align-items: center;
+    width: 850px;
+   }
+
+   #titulo {
+    flex: 1;
+    text-align: left;
+   }
+
+   #score {
+    flex: 1;
+    text-align: center;
+   }
+
+   #highscore {
+    flex: 1;
+    text-align: right;
+   }
   </style>
 </head>
 <body>
 
-<h2>Cobra 2D</h2>
+<div id="hud">
+  <h2 id="titulo">Cobra 2D</h2>
+  <h2 id="score">Score: 0 pts</h2>
+  <h2 id="highscore">HIGHEST SCORE: 0 pts</h2>
+</div>
+
 <canvas id="canvas" width="800" height="600"></canvas>
 
 <script>
@@ -18,6 +44,71 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width;
 const H = canvas.height;
+
+let Score = 0;
+let HighScore = 0;
+
+const Scoreelement = document.getElementById("score");
+function ChangeScore(){
+  Scoreelement.textContent = `Score: ${Score} pts`;
+}
+
+const HScore = document.getElementById("highscore");
+function ChangeHighScore(){
+  HScore.textContent = `Highest Score: ${HighScore} pts`;
+}
+
+// =============================================================
+// Segmentos
+// =============================================================
+const QUANTIDADE_MACAS = 3;
+let macas = [];
+
+let rastro = [];
+let tamanhoRastro = 1;
+
+// =============================================================
+// CONFIGURAÇÃO DO VIEWPORT (GRID)
+// =============================================================
+const GRID_CONFIG = {
+  ativo: true,        // ligar/desligar grid
+  tamanhoCelula: 40,  // tamanho de cada quadrado
+  cor: '#cccccc',     // cor das linhas
+  larguraLinha: 1     // espessura das linhas
+};
+
+const TAMANHO_CELULA = GRID_CONFIG.tamanhoCelula;
+
+let gridX = Math.floor(W / 2 / TAMANHO_CELULA);
+let gridY = Math.floor(H / 2 / TAMANHO_CELULA);
+
+let ultimoMovimento = 0;
+let intervaloMovimento = 160;
+
+function desenharGrid() {
+  if (!GRID_CONFIG.ativo) return;
+
+  const { tamanhoCelula, cor, larguraLinha } = GRID_CONFIG;
+
+  ctx.strokeStyle = cor;
+  ctx.lineWidth = larguraLinha;
+
+  // Linhas verticais
+  for (let x = 0; x <= W; x += tamanhoCelula) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+
+  // Linhas horizontais
+  for (let y = 0; y <= H; y += tamanhoCelula) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+}
 
 // =============================================================
 // ESTADO
@@ -33,9 +124,10 @@ let anguloRotacao = 0;
 
 // Ângulo da língua (animação)
 let anguloLingua = 0;
+let angulomaca = 0;
 
 // =============================================================
-// DESENHO DA COBRA
+// DESENHOS
 // =============================================================
 function desenhaCobra(tamanho) {
   // Cabeça
@@ -65,63 +157,190 @@ function desenhaCobra(tamanho) {
   ctx.stroke();
 }
 
+function desenharRastro() {
+  rastro.forEach((parte, index) => {
+    const posX = parte.x * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+    const posY = parte.y * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+
+    ctx.save();
+    ctx.translate(posX, posY);
+
+    ctx.fillStyle = 'green';
+
+    ctx.fillRect(
+      -TAMANHO_CELULA / 2,
+      -TAMANHO_CELULA / 2,
+      TAMANHO_CELULA,
+      TAMANHO_CELULA
+    );
+
+    ctx.restore();
+  });
+}
+
+function desenharMacas() {
+  macas.forEach(maca => {
+    const posX = maca.x * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+    const posY = maca.y * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+
+    const escala = 1 + 0.2 * Math.sin(angulomaca);
+
+    ctx.save();
+
+    ctx.translate(posX, posY);
+    ctx.scale(escala, escala);
+
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(0, 0, TAMANHO_CELULA / 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // cabinho
+    ctx.strokeStyle = 'brown';
+    ctx.beginPath();
+    ctx.moveTo(0, -TAMANHO_CELULA / 4);
+    ctx.lineTo(0, -TAMANHO_CELULA / 2);
+    ctx.stroke();
+
+    ctx.restore();
+  });
+}
+
 // =============================================================
 // MOVIMENTO
 // =============================================================
-function atualizarMovimento() {
+function atualizarMovimento(tempoAtual) {
+  if (tempoAtual - ultimoMovimento < intervaloMovimento) return;
+
+  ultimoMovimento = tempoAtual;
+
   switch (direcao) {
     case 'right':
-      posX += velocidade;
+      gridX += 1;
       anguloRotacao = Math.PI / 2;
       break;
     case 'left':
-      posX -= velocidade;
+      gridX -= 1;
       anguloRotacao = -Math.PI / 2;
       break;
     case 'up':
-      posY -= velocidade;
+      gridY -= 1;
       anguloRotacao = 0;
       break;
     case 'down':
-      posY += velocidade;
+      gridY += 1;
       anguloRotacao = Math.PI;
       break;
   }
+
+  // Converter grid → posição real (pixel)
+  posX = gridX * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+  posY = gridY * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+
+  rastro.unshift({ x: gridX, y: gridY });
+
+  // limita o tamanho do rastro
+  if (rastro.length > tamanhoRastro) {
+    rastro.pop();
+  }
+
+  for (let i = 1; i < rastro.length; i++) {
+    if (rastro[i].x === gridX && rastro[i].y === gridY) {
+      reiniciarJogo();
+      return;
+    }
+  }
+
+  macas = macas.filter(maca => {
+  if (maca.x === gridX && maca.y === gridY) {
+    if (intervaloMovimento >= 70)
+      intervaloMovimento -= 5;
+      Score += 1;
+      tamanhoRastro += 1;
+      ChangeScore();
+    return false;
+  }
+  return true;
+  });
+
+  // repor maçãs até ter 4
+  while (macas.length < QUANTIDADE_MACAS) {
+    macas.push(gerarPosicaoAleatoria());
+  }
+}
+
+function gerarPosicaoAleatoria() {
+  const maxX = Math.floor(W / TAMANHO_CELULA);
+  const maxY = Math.floor(H / TAMANHO_CELULA);
+
+  return {
+    x: Math.floor(Math.random() * maxX),
+    y: Math.floor(Math.random() * maxY)
+  };
 }
 
 // =============================================================
 // LOOP
 // =============================================================
-function animar() {
+
+function animar(tempoAtual) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, W, H);
 
-  // Atualiza
-  atualizarMovimento();
+  desenharGrid();
+  desenharMacas();
 
-  if (posX < 0 || posX > W || posY < 0 || posY > H) {
-  reiniciarJogo();
- }
+  atualizarMovimento(tempoAtual);
+
+  desenharRastro();
+  ctx.save();
+  ctx.translate(posX, posY);
+  ctx.rotate(anguloRotacao);
+  desenhaCobra(TAMANHO_CELULA);
+  ctx.restore();
+
+  // colisão com borda
+  if (
+    gridX < 0 ||
+    gridX >= W / TAMANHO_CELULA ||
+    gridY < 0 ||
+    gridY >= H / TAMANHO_CELULA
+  ) {
+    reiniciarJogo();
+  }
 
   anguloLingua += 0.2;
+  angulomaca += 0.1;
 
-  // Desenha cobra
+  // Desenho continua igual
   ctx.save();
     ctx.translate(posX, posY);
     ctx.rotate(anguloRotacao);
-    desenhaCobra(60);
+    desenhaCobra(TAMANHO_CELULA);
   ctx.restore();
 
   requestAnimationFrame(animar);
 }
 
 function reiniciarJogo() {
-  posX = W / 2;
-  posY = H / 2;
+  gridX = Math.floor(W / 2 / TAMANHO_CELULA);
+  gridY = Math.floor(H / 2 / TAMANHO_CELULA);
+
+  posX = gridX * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+  posY = gridY * TAMANHO_CELULA + TAMANHO_CELULA / 2;
+
   direcao = 'right';
   anguloRotacao = Math.PI / 2;
+  intervaloMovimento = 160;
+  tamanhoRastro = 1;
+  rastro = [];
+  if (Score > HighScore){
+    HighScore = Score;
+    ChangeHighScore();
+  }
+  Score = 0;
+  ChangeScore();
 }
-
 // =============================================================
 // CONTROLES
 // =============================================================
